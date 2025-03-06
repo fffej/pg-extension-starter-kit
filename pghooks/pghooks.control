@@ -1,0 +1,5 @@
+# pghooks extension
+comment = 'PostgreSQL extension demonstrating various hooks'
+default_version = '1.0'
+module_pathname = '$libdir/pghooks'
+relocatable = true

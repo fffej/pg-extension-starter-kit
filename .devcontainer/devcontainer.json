@@ -1,0 +1,6 @@
+{
+    "name": "PostgreSQL Extension Development",
+    "dockerFile": "Dockerfile",
+    "forwardPorts": [5432],
+    "remoteUser": "vscode"
+  }
