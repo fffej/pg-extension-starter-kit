@@ -9,6 +9,7 @@
 #include "utils/builtins.h"
 #include "optimizer/planner.h"
 #include "parser/analyze.h"
+#include "utils/selfuncs.h"
 
 PG_MODULE_MAGIC;
 
@@ -21,6 +22,8 @@ static ProcessUtility_hook_type prev_process_utility = NULL;
 static ExecutorCheckPerms_hook_type prev_executor_check_perms = NULL;
 static ExecutorEnd_hook_type prev_executor_end = NULL;
 static planner_hook_type prev_planner_hook = NULL;
+static get_index_stats_hook_type prev_get_index_stats_hook = NULL;
+
 
 /* Hook implementation functions */
 static void hook_executor_start(QueryDesc *queryDesc, int eflags);
@@ -31,6 +34,7 @@ static void hook_process_utility(PlannedStmt *pstmt, const char *queryString, bo
 static bool hook_executor_check_perms(List *rangeTabls, List *rtePermInfos, bool abort);
 static void hook_executor_end(QueryDesc *queryDesc);
 static PlannedStmt *hook_planner(Query *parse, const char* query_string, int cursorOptions, ParamListInfo boundParams);
+static bool hook_get_index_stats(PlannerInfo *root, Oid indexOid, AttrNumber indexattnum, VariableStatData *vardata);
 
 /* Transaction callback */
 static void hook_xact_callback(XactEvent event, void *arg);
@@ -57,6 +61,9 @@ void _PG_init(void)
 
     prev_planner_hook = planner_hook;
     planner_hook = hook_planner;
+
+    prev_get_index_stats_hook = get_index_stats_hook;
+    get_index_stats_hook = hook_get_index_stats;
 }
 
 /* Unload extension */
@@ -68,6 +75,7 @@ void _PG_fini(void)
     ExecutorCheckPerms_hook = prev_executor_check_perms;
     ExecutorEnd_hook = prev_executor_end;
     planner_hook = prev_planner_hook;
+    get_index_stats_hook = prev_get_index_stats_hook;
 
     UnregisterXactCallback(hook_xact_callback, NULL);
     elog(NOTICE, "pghooks_demo: unloaded");
@@ -131,6 +139,17 @@ static PlannedStmt *hook_planner(Query *parse, const char* query_string, int cur
         return prev_planner_hook(parse, query_string, cursorOptions, boundParams);
     else
         return standard_planner(parse, query_string, cursorOptions, boundParams);
+}
+
+// Hook for overriding index stats lookup.
+static bool hook_get_index_stats(PlannerInfo *root, Oid indexOid, AttrNumber indexattnum, VariableStatData *vardata)
+{
+    elog(NOTICE, "pghooks_demo: get index stats hook called for index OID: %u", indexOid);
+
+    if (prev_get_index_stats_hook)
+        return prev_get_index_stats_hook(root, indexOid, indexattnum, vardata);
+    else
+        return false;
 }
 
 /* Transaction callback */
