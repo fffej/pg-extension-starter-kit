@@ -4,7 +4,7 @@
 -- Create a test function to verify the extension is loaded
 CREATE OR REPLACE FUNCTION pghooks_demo_test()
 RETURNS text
-AS 'MODULE_PATHNAME', 'pg_hook_demo_test'
+AS 'MODULE_PATHNAME', 'pghooks_demo_test'
 LANGUAGE C STRICT;
 
 -- Comment to help users

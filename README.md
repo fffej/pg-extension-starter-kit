@@ -32,3 +32,5 @@ SELECT pg_hook_demo_test();
 ```
 
 You should see various NOTICE messages for each hook that's triggered, including the transaction start hook.
+
+In the event of problems `DROP EXTENSION pghooks;` and recreate seems to do the job.

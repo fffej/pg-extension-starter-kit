@@ -38,7 +38,7 @@ static void hook_xact_callback(XactEvent event, void *arg);
 /* Extension initialization */
 void _PG_init(void)
 {
-    elog(NOTICE, "pg_hook_demo: initializing extension");
+    elog(NOTICE, "pghooks_demo: initializing extension");
 
     RegisterXactCallback(hook_xact_callback, NULL);
 
@@ -70,13 +70,13 @@ void _PG_fini(void)
     planner_hook = prev_planner_hook;
 
     UnregisterXactCallback(hook_xact_callback, NULL);
-    elog(NOTICE, "pg_hook_demo: unloaded");
+    elog(NOTICE, "pghooks_demo: unloaded");
 }
 
 /* ExecutorStart hook - called at the start of query execution */
 static void hook_executor_start(QueryDesc *queryDesc, int eflags)
 {
-    elog(NOTICE, "pg_hook_demo: executor start hook called for query: %s",
+    elog(NOTICE, "pghooks_demo: executor start hook called for query: %s",
          queryDesc->sourceText);
 
     if (prev_executor_start)
@@ -91,7 +91,7 @@ static void hook_process_utility(PlannedStmt *pstmt, const char *queryString, bo
                                  QueryEnvironment *queryEnv,
                                  DestReceiver *dest, QueryCompletion *qc)
 {
-    elog(NOTICE, "pg_hook_demo: process utility hook called for: %s", queryString);
+    elog(NOTICE, "pghooks_demo: process utility hook called for: %s", queryString);
 
     if (prev_process_utility)
         prev_process_utility(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
@@ -102,7 +102,7 @@ static void hook_process_utility(PlannedStmt *pstmt, const char *queryString, bo
 /* ExecutorCheckPerms hook - security check for queries */
 static bool hook_executor_check_perms(List *rangeTabls, List *rtePermInfos, bool abort)
 {
-    elog(NOTICE, "pg_hook_demo: permission check hook called");
+    elog(NOTICE, "pghooks_demo: permission check hook called");
 
     if (prev_executor_check_perms)
         return prev_executor_check_perms(rangeTabls, rtePermInfos, abort);
@@ -113,7 +113,7 @@ static bool hook_executor_check_perms(List *rangeTabls, List *rtePermInfos, bool
 /* ExecutorEnd hook - called at the end of query execution */
 static void hook_executor_end(QueryDesc *queryDesc)
 {
-    elog(NOTICE, "pg_hook_demo: executor end hook called"); 
+    elog(NOTICE, "pghooks_demo: executor end hook called"); 
 
     if (prev_executor_end)
         prev_executor_end(queryDesc);
@@ -125,7 +125,7 @@ static void hook_executor_end(QueryDesc *queryDesc)
 /* Planner hook - called during query planning */
 static PlannedStmt *hook_planner(Query *parse, const char* query_string, int cursorOptions, ParamListInfo boundParams)
 {
-    elog(NOTICE, "pg_hook_demo: planner hook called");
+    elog(NOTICE, "pghooks_demo: planner hook called for query: %s", query_string);
 
     if (prev_planner_hook)
         return prev_planner_hook(parse, query_string, cursorOptions, boundParams);
@@ -169,11 +169,11 @@ static void hook_xact_callback(XactEvent event, void *arg)
 }
 
 /* SQL-callable function for testing that the extension is loaded */
-PG_FUNCTION_INFO_V1(pg_hook_demo_test);
+PG_FUNCTION_INFO_V1(pghooks_demo_test);
 Datum
-pg_hook_demo_test(PG_FUNCTION_ARGS)
+pghooks_demo_test(PG_FUNCTION_ARGS)
 {
-    elog(NOTICE, "pg_hook_demo: test function called");
-    PG_RETURN_TEXT_P(cstring_to_text("pg_hook_demo is working!"));
+    elog(NOTICE, "pghooks: test function called");
+    PG_RETURN_TEXT_P(cstring_to_text("pghooks is working!"));
 }
  
